@@ -5,6 +5,19 @@ from sklearn.preprocessing import StandardScaler
 from naive_bayes_gaussian import naive_bayes_gaussian
 from sklearn.preprocessing import OrdinalEncoder
 
+def visualize_feature_distributions(data, feature_name):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=data, x=feature_name, hue='Age', kde=True, element='step')
+    plt.title(f'Distribution of {feature_name} by Age Group')
+    plt.xlabel(feature_name)
+    plt.ylabel('Count')
+    plt.legend(title='Age Group')
+    plt.show()
+
+
 data = pd.read_csv('abalone.csv')
 
 # column Age from numeric 'Rings'.
@@ -42,6 +55,8 @@ def calculate_accuracy(y_test, y_pred):
 y_pred = model.predict(X_test)
 print("accuracy of gaussian naive bayes on abalone dataset: ", calculate_accuracy(y_test, y_pred))
 
-
+#visualize all features distributions by age group
+for feature in data.columns[:-1]: #exclude Age
+    visualize_feature_distributions(data, feature)
 
 
