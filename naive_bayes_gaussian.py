@@ -7,10 +7,10 @@ from sklearn.naive_bayes import GaussianNB
 
 class naive_bayes_gaussian:
 
-    def likelihood(self, x, mean, var):
-        #gaussian likelihood
-        exponent = np.exp(-((x - mean) ** 2) / (2 * var))
-        return (1 / np.sqrt(2 * np.pi * var)) * exponent
+    def log_likelihood(self, x, mean, var):
+        # Log of Gaussian likelihood to prevent underflow
+        exponent = -((x - mean) ** 2) / (2 * var)
+        return -0.5 * (np.log(2 * np.pi * var)) + exponent
 
     def calculate_priors(self, y):
         y = np.asarray(y).flatten()
@@ -51,21 +51,21 @@ class naive_bayes_gaussian:
         return np.array(y_pred)
 
     def predict_example(self, example):
-        max_posterior = 0
-        max_posterior_class = None
+        max_log_posterior = -np.inf
+        max_log_posterior_class = None
         for y_class in self.classes: #for each class, calculate posterior
-            #multiply by prior
-            posterior = self.priors[y_class]
-            for feature in self.feature_names: #for each feature, calculate likelihood and multiply
+            # Add log prior
+            log_posterior = np.log(self.priors[y_class])
+            for feature in self.feature_names: #for each feature, calculate log likelihood and add
                 mean, var = self.parameters[feature][y_class]
-                likelihood = self.likelihood(example[feature], mean, var)
-                posterior *= likelihood
+                log_likelihood = self.log_likelihood(example[feature], mean, var)
+                log_posterior += log_likelihood
 
-            if posterior > max_posterior: #maximize
-                max_posterior = posterior
-                max_posterior_class = y_class
+            if log_posterior > max_log_posterior: #maximize
+                max_log_posterior = log_posterior
+                max_log_posterior_class = y_class
 
-        return max_posterior_class
+        return max_log_posterior_class
 
 
 
@@ -74,7 +74,7 @@ def test_likelihood():
     x = 1.6
     mean = 1.4
     var = 0.0067
-    print(nb.likelihood(x, mean, var)) #approx 0.247
+    print(nb.log_likelihood(x, mean, var)) #approx 0.247
 
 def test_calculate_priors():
     nb = naive_bayes_gaussian()
